@@ -12,7 +12,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/escalation")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class EscalationController {
 
     private final EscalationService escalationService;
