@@ -21,8 +21,8 @@ public class JwtAuthFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
 
-        // skip auth for login endpoints
-        if (path.startsWith("/api/auth/")) {
+        // skip auth for login and health-check endpoints
+        if (path.startsWith("/api/auth/") || path.endsWith("/health") || path.contains("/actuator/")) {
             return chain.filter(exchange);
         }
 
