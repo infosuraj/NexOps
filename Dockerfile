@@ -2,10 +2,10 @@ FROM maven:3.9-eclipse-temurin-21-alpine AS build
 ARG SERVICE_NAME
 WORKDIR /build
 COPY pom.xml .
-COPY ${SERVICE_NAME}/pom.xml ${SERVICE_NAME}/
-RUN mvn dependency:go-offline -pl ${SERVICE_NAME} -am -q 2>/dev/null || true
+COPY ${SERVICE_NAME}/pom.xml ${SERVICE_NAME}/pom.xml
 COPY ${SERVICE_NAME}/src ${SERVICE_NAME}/src
-RUN mvn package -pl ${SERVICE_NAME} -am -DskipTests -q
+RUN mvn install -N -q
+RUN mvn package -f ${SERVICE_NAME}/pom.xml -DskipTests -q
 
 FROM eclipse-temurin:21-jre-alpine
 ARG SERVICE_NAME
