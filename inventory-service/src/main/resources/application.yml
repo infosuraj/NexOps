@@ -1,0 +1,52 @@
+server:
+  port: ${PORT:8081}
+
+spring:
+  application:
+    name: inventory-service
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/nexops}
+    username: ${DB_USER:nexops}
+    password: ${DB_PASSWORD:nexops123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKERS:kafka-c7660fa-infosuraj.i.aivencloud.com:20524}
+    admin:
+      auto-create-topics: true
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        security.protocol: SASL_SSL
+        sasl.mechanism: SCRAM-SHA-256
+        sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG}
+        ssl.endpoint.identification.algorithm: ""
+        ssl.truststore.type: PEM
+        ssl.truststore.certificates: ${KAFKA_SSL_CERT:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics,info
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+nexops:
+  kafka:
+    topics:
+      stock-update: nexops.stock.update
+      low-stock: nexops.stock.low
+      demand-event: nexops.demand.event

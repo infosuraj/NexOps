@@ -1,0 +1,28 @@
+# Build artifacts
+target/
+*.jar
+*.class
+*.war
+
+# Frontend
+node_modules/
+dist/
+
+# Secrets — never commit these
+ca.pem
+.env
+.env.local
+.env.production
+
+# IDE & OS
+.DS_Store
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Railway
+.railway/
+
+# Logs
+*.log

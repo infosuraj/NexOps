@@ -1,0 +1,65 @@
+server:
+  port: ${PORT:8082}
+
+spring:
+  application:
+    name: pricing-service
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/nexops}
+    username: ${DB_USER:nexops}
+    password: ${DB_PASSWORD:nexops123}
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKERS:kafka-c7660fa-infosuraj.i.aivencloud.com:20524}
+    consumer:
+      group-id: pricing-agent-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        security.protocol: SASL_SSL
+        sasl.mechanism: SCRAM-SHA-256
+        sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG}
+        ssl.endpoint.identification.algorithm: ""
+        ssl.truststore.type: PEM
+        ssl.truststore.certificates: ${KAFKA_SSL_CERT:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics
+
+nexops:
+  pricing:
+    demand-threshold: 5
+    max-increase-pct: 50
+    max-decrease-pct: 20
+
+inventory:
+  service:
+    url: ${INVENTORY_SERVICE_URL:http://localhost:8081}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      inventoryService:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+  retry:
+    instances:
+      inventoryService:
+        maxAttempts: 3
+        waitDuration: 1s

@@ -1,0 +1,40 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: inventory
+          uri: ${INVENTORY_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/inventory/**
+        - id: pricing
+          uri: ${PRICING_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/pricing/**
+        - id: escalation
+          uri: ${ESCALATION_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/escalation/**
+        - id: supplier
+          uri: ${SUPPLIER_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/supplier/**
+  security:
+    user:
+      name: admin
+      password: nexops123
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+nexops:
+  jwt:
+    secret: ${JWT_SECRET:nexops-secret-key-2026-amrita-mca-project-suraj}
+    expiration: 86400000

@@ -1,0 +1,45 @@
+server:
+  port: ${PORT:8084}
+
+spring:
+  application:
+    name: supplier-service
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/nexops}
+    username: ${DB_USER:nexops}
+    password: ${DB_PASSWORD:nexops123}
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKERS:kafka-c7660fa-infosuraj.i.aivencloud.com:20524}
+    consumer:
+      group-id: supplier-agent-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        security.protocol: SASL_SSL
+        sasl.mechanism: SCRAM-SHA-256
+        sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG}
+        ssl.endpoint.identification.algorithm: ""
+        ssl.truststore.type: PEM
+        ssl.truststore.certificates: ${KAFKA_SSL_CERT:}
+
+resend:
+  api:
+    key: ${RESEND_API_KEY:demo-mode}
+    from: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics
