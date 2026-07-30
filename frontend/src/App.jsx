@@ -289,6 +289,81 @@ function Loader() {
 // ══ PANELS ══════════════════════════════════════════════════
 
 // ── Overview ─────────────────────────────────────────────────
+function AgentFlowDiagram({ statuses }) {
+  const nodes = [
+    { key: 'Inventory',  label: 'Inventory',  icon: '📦', color: BLUE,              x: 0   },
+    { key: 'Pricing',    label: 'Pricing',    icon: '💹', color: '#111',            x: 340 },
+    { key: 'Escalation', label: 'Escalation', icon: '🚨', color: RED,               x: 340 },
+    { key: 'Supplier',   label: 'Supplier',   icon: '🏭', color: AMBER,             x: 340 },
+  ]
+  const up = k => statuses[k] ?? false
+  return (
+    <Card style={{ padding: '24px 28px', marginBottom: 28, overflow: 'hidden', position: 'relative' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: GREY4, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 20 }}>Event Flow</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, position: 'relative' }}>
+
+        {/* Inventory node */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, zIndex: 2 }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 16,
+            background: up('Inventory') ? BLUE_L : GREY1,
+            border: `2px solid ${up('Inventory') ? BLUE : GREY3}`,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+            transition: 'all .3s',
+          }}>
+            <span style={{ fontSize: 22 }}>📦</span>
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 700, color: up('Inventory') ? BLUE : GREY4 }}>Inventory</span>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: up('Inventory') ? GREEN : GREY3, boxShadow: up('Inventory') ? `0 0 6px ${GREEN}` : 'none' }} />
+        </div>
+
+        {/* Arrow + Kafka bus */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', padding: '0 16px' }}>
+          <div style={{ width: '100%', height: 2, background: `linear-gradient(90deg, ${BLUE}40, #7c3aed40)`, borderRadius: 2, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: -3, left: 0, width: '30%', height: 8, borderRadius: 4, background: `linear-gradient(90deg, transparent, ${BLUE}80, transparent)`, animation: 'flowPulse 2s linear infinite' }} />
+          </div>
+          <div style={{ marginTop: 8, background: '#f5f0ff', border: '1px solid #ddd5ff', borderRadius: 8, padding: '4px 12px', fontSize: 10, fontWeight: 700, color: '#7c3aed', letterSpacing: '.04em' }}>
+            ⚡ KAFKA
+          </div>
+          <div style={{ width: '100%', height: 2, background: `linear-gradient(90deg, #7c3aed40, ${AMBER}40)`, borderRadius: 2, marginTop: 8, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: -3, left: 0, width: '30%', height: 8, borderRadius: 4, background: `linear-gradient(90deg, transparent, #7c3aed80, transparent)`, animation: 'flowPulse 2.4s linear infinite .6s' }} />
+          </div>
+        </div>
+
+        {/* Right nodes */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, zIndex: 2 }}>
+          {[
+            { key: 'Pricing',    icon: '💹', color: '#111' },
+            { key: 'Escalation', icon: '🚨', color: RED    },
+            { key: 'Supplier',   icon: '🏭', color: AMBER  },
+          ].map(n => (
+            <div key={n.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 3, height: 2, background: GREY3, flex: 0 }} />
+              <div style={{
+                width: 48, height: 48, borderRadius: 12,
+                background: up(n.key) ? '#f9fafb' : GREY1,
+                border: `2px solid ${up(n.key) ? GREY3 : GREY3}`,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                transition: 'all .3s',
+              }}>
+                <span style={{ fontSize: 18 }}>{n.icon}</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: BLACK }}>{n.key}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: up(n.key) ? GREEN : RED, boxShadow: up(n.key) ? `0 0 5px ${GREEN}` : 'none' }} />
+                  <span style={{ fontSize: 9, fontWeight: 700, color: up(n.key) ? GREEN : RED }}>{up(n.key) ? 'UP' : 'DOWN'}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <style>{`@keyframes flowPulse{0%{left:-30%}100%{left:110%}}`}</style>
+    </Card>
+  )
+}
+
 function Overview({ products, tickets, orders, pricing, statuses }) {
   const metrics = [
     { label: 'Products in Catalogue', value: products?.length ?? '—', sub: 'inventory items', color: BLACK },
@@ -298,10 +373,10 @@ function Overview({ products, tickets, orders, pricing, statuses }) {
   ]
 
   const agents = [
-    { name: 'Inventory Agent',  port: '8081', color: BLUE,  desc: 'Watches stock 24/7. Fires events on every sale and low-stock breach.' },
-    { name: 'Pricing Agent',    port: '8082', color: BLACK, desc: 'Raises prices on high demand, cuts them on overstock. No human needed.' },
-    { name: 'Escalation Agent', port: '8083', color: RED,   desc: 'Reads tickets, uses Gemini AI to triage, assigns to the right team.' },
-    { name: 'Supplier Agent',   port: '8084', color: AMBER, desc: 'Auto-creates Purchase Orders on low stock. Saga pattern — no duplicates.' },
+    { key: 'Inventory',  icon: '📦', color: BLUE,  desc: 'Watches stock 24/7. Fires events on every sale and low-stock breach.' },
+    { key: 'Pricing',    icon: '💹', color: BLACK, desc: 'Raises prices on high demand, cuts them on overstock. No human needed.' },
+    { key: 'Escalation', icon: '🚨', color: RED,   desc: 'Reads tickets, uses Gemini AI to triage, assigns to the right team.' },
+    { key: 'Supplier',   icon: '🏭', color: AMBER, desc: 'Auto-creates Purchase Orders on low stock. Saga pattern — no duplicates.' },
   ]
 
   return (
@@ -317,21 +392,39 @@ function Overview({ products, tickets, orders, pricing, statuses }) {
         ))}
       </div>
 
-      {/* agents */}
+      {/* flow diagram */}
+      <AgentFlowDiagram statuses={statuses} />
+
+      {/* agent cards */}
       <SectionLabel>Active AI Agents</SectionLabel>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {agents.map(a => (
-          <Card key={a.name} style={{ padding: '18px 20px', borderTop: `3px solid ${a.color}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{a.name}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 11, color: GREY5, fontWeight: 600 }}>:{a.port}</span>
-                <Pill on={statuses[a.name.replace(' Agent','')] ?? false} />
+        {agents.map(a => {
+          const on = statuses[a.key] ?? false
+          return (
+            <Card key={a.key} style={{
+              padding: '20px 22px',
+              borderLeft: `4px solid ${on ? a.color : GREY3}`,
+              opacity: on ? 1 : 0.75,
+              transition: 'all .3s',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{
+                    width: 38, height: 38, borderRadius: 10,
+                    background: on ? (a.key === 'Inventory' ? BLUE_L : a.key === 'Pricing' ? '#f3f3f3' : a.key === 'Escalation' ? '#fee2e2' : '#fffbeb') : GREY1,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+                  }}>{a.icon}</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: BLACK }}>{a.key} Agent</div>
+                    <div style={{ fontSize: 10, color: GREY4, marginTop: 1, fontWeight: 500 }}>AI-driven · autonomous</div>
+                  </div>
+                </div>
+                <Pill on={on} />
               </div>
-            </div>
-            <div style={{ fontSize: 12, color: GREY5, lineHeight: 1.65 }}>{a.desc}</div>
-          </Card>
-        ))}
+              <div style={{ fontSize: 12, color: GREY5, lineHeight: 1.7, paddingLeft: 48 }}>{a.desc}</div>
+            </Card>
+          )
+        })}
       </div>
     </div>
   )
@@ -738,38 +831,47 @@ export default function App() {
                 background: 'none', border: 'none', cursor: 'pointer',
                 padding: '0 14px', height: '100%',
                 fontSize: 13, fontWeight: active ? 700 : 500,
-                color: active ? BLACK : GREY5,
+                color: active ? BLACK : t.dev ? GREY4 : GREY5,
                 borderBottom: active ? `2px solid ${BLUE}` : '2px solid transparent',
                 transition: 'color .15s, border-color .15s',
                 fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', gap: 6,
               }}
-              onMouseEnter={e=>{ if(!active) e.currentTarget.style.color = BLACK }}
-              onMouseLeave={e=>{ if(!active) e.currentTarget.style.color = GREY5 }}
-              >{t.label}</button>
+              onMouseEnter={e=>{ if(!active) e.currentTarget.style.color = t.dev ? GREY4 : BLACK }}
+              onMouseLeave={e=>{ if(!active) e.currentTarget.style.color = t.dev ? GREY4 : GREY5 }}
+              >
+                {t.label}
+                {t.dev && (
+                  <span style={{
+                    fontSize: 8, fontWeight: 700, letterSpacing: '.05em',
+                    background: '#f3f3f3', color: GREY4, border: `1px solid ${GREY3}`,
+                    padding: '1px 5px', borderRadius: 4, textTransform: 'uppercase',
+                  }}>Dev</span>
+                )}
+              </button>
             )
           })}
         </nav>
 
         {/* right: service status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', gap: 12 }}>
-            {SERVICES.map(s => (
-              <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{
-                  width: 6, height: 6, borderRadius: '50%',
-                  background: statuses[s.name] ? GREEN : RED,
-                  display: 'inline-block',
-                  boxShadow: statuses[s.name] ? `0 0 4px ${GREEN}` : 'none',
-                }} />
-                <span style={{ fontSize: 11, color: GREY5, fontWeight: 500 }}>{s.name}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ width: 1, height: 20, background: GREY3 }} />
-          <Tag
-            bg={allUp ? '#dcfce7' : '#fee2e2'}
-            color={allUp ? GREEN : RED}
-          >{allUp ? '● All Systems Up' : '○ Degraded'}</Tag>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {allUp ? (
+            /* all up — just the green pill */
+            <Tag bg="#dcfce7" color={GREEN} style={{ fontSize: 11, padding: '4px 10px' }}>
+              ● All Systems Up
+            </Tag>
+          ) : (
+            /* show only the DOWN ones */
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {SERVICES.filter(s => !statuses[s.name]).map(s => (
+                <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: RED, display: 'inline-block' }} />
+                  <span style={{ fontSize: 11, color: RED, fontWeight: 600 }}>{s.name}</span>
+                </div>
+              ))}
+              <Tag bg="#fee2e2" color={RED} style={{ fontSize: 11, padding: '4px 10px' }}>Degraded</Tag>
+            </div>
+          )}
           <span style={{ fontSize: 10, color: GREY4 }}>↻ 10s</span>
           <div style={{ width: 1, height: 20, background: GREY3 }} />
           <Btn small variant="ghost" onClick={logout}>Sign out</Btn>
