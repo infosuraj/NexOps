@@ -6,13 +6,6 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOriginPatterns: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
-            allowCredentials: false
       routes:
         - id: inventory
           uri: ${INVENTORY_URL:http://localhost:8081}
